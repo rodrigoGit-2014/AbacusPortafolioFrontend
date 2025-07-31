@@ -3,6 +3,7 @@ import pandas as pd
 import requests
 import json
 import plotly.express as px
+import os
 
 st.title("Evaluación de evolución del portafolio")
 
@@ -39,10 +40,15 @@ with col1:
 with col2:
     fecha_fin = st.date_input("Fecha de fin")
 
+# Definir la URL base desde variable de entorno o usar valor por defecto
+
+API_URL = os.getenv("API_URL", "http://localhost:8080")
+
+
 # Botón para evaluar
 if st.button("📈 Evaluar evolución"):
     # Construcción de la URL
-    backend_url = f"http://localhost:8080/api/portafolio/{portafolio_id}/evolution"
+    backend_url = f"{API_URL}/api/portafolio/{portafolio_id}/evolution"
     params = {
         "fechaInicio": fecha_inicio.strftime("%Y-%m-%d"),
         "fechaFin": fecha_fin.strftime("%Y-%m-%d")
