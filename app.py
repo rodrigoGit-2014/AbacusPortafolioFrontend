@@ -1,91 +1,54 @@
 import streamlit as st
-import pandas as pd
-import requests
-import json
-import plotly.express as px
-import os
+from datetime import date
+from ui.upload_dataset import render_upload_tab
+from ui.visualizacion import render_portfolio_tab
 
-st.title("Evaluación de evolución del portafolio")
+st.set_page_config(page_title="Gestión de Portafolio", layout="wide")
+st.title("Gestión de Portafolio Financiero")
 
-# --------------------------
-# 🔹 Función de transformación
-# --------------------------
+tabs = st.tabs(["📂 Carga Dataset", "📊 Visualización Portafolio", "🔄 Operación Compra/Venta"])
 
-def transform_backend_response(data):
-    registros = []
-    for entry in data:
-        fecha = entry["day"]
-        portafolio_total = round(entry["portfolioTotal"], 2)
-        for weight in entry["weights"]:
-            registros.append({
-                "fecha": fecha,
-                "activo": weight["assetName"],
-                "peso": round(weight["assetWeight"], 3),
-                "portafolio_total": portafolio_total
-            })
-    return pd.DataFrame(registros)
+# TAB 1: Carga Dataset
+with tabs[0]:
+    render_upload_tab()
+    #st.header("📂 Carga del dataset")
+# TAB 2: Visualización Portafolio
+with tabs[1]:
+    render_portfolio_tab()
+    #st.header("📊 Visualización del portafolio")
+    #
+    #col1, col2, col3 = st.columns(3)
+    #with col1:
+    #    portafolio_id = st.selectbox("Selecciona el portafolio", [1, 2])
+    #with col2:
+    #    fecha_inicio = st.date_input("Fecha inicio", value=date(2022, 2, 15))
+    #with col3:
+    #    fecha_fin = st.date_input("Fecha fin", value=date(2022, 3, 15))
+    #
+    #if st.button("Buscar evolución del portafolio"):
+    #    st.info(f"Consultando portafolio {portafolio_id} desde {fecha_inicio} hasta {fecha_fin}")
+    #    # Aquí se consultará la API y se mostrarán gráficos
 
-# --------------------------
-# 🔹 Controles de entrada
-# --------------------------
+# TAB 3: Operación Compra/Venta
+with tabs[2]:
+    st.header("🔄 Operación de Compra/Venta")
+    
+    fecha_operacion = st.date_input("Fecha de operación", value=date.today())
 
-# Selección de portafolio
-portafolio_nombre = st.selectbox("Selecciona un portafolio", ["portafolio 1", "portafolio 2"])
-portafolio_id = 1 if portafolio_nombre == "portafolio 1" else 2
+    st.subheader("💸 Vendedor")
+    col1, col2 = st.columns(2)
+    with col1:
+        activo_vende = st.selectbox("Activo a vender", ["EEUU", "Europa", "Japon"])
+    with col2:
+        monto_venta = st.number_input("Monto a vender", min_value=0.0, step=1000.0)
 
-# Rango de fechas
-col1, col2 = st.columns(2)
-with col1:
-    fecha_inicio = st.date_input("Fecha de inicio")
-with col2:
-    fecha_fin = st.date_input("Fecha de fin")
+    st.subheader("🛒 Comprador")
+    col3, col4 = st.columns(2)
+    with col3:
+        activo_compra = st.selectbox("Activo a comprar", ["EEUU", "Europa", "Japon"])
+    with col4:
+        monto_compra = st.number_input("Monto a comprar", min_value=0.0, step=1000.0)
 
-# Definir la URL base desde variable de entorno o usar valor por defecto
-
-API_URL = os.getenv("API_URL", "http://localhost:8080")
-
-
-# Botón para evaluar
-if st.button("📈 Evaluar evolución"):
-    # Construcción de la URL
-    backend_url = f"{API_URL}/api/portafolio/{portafolio_id}/evolution"
-    params = {
-        "fechaInicio": fecha_inicio.strftime("%Y-%m-%d"),
-        "fechaFin": fecha_fin.strftime("%Y-%m-%d")
-    }
-
-    try:
-        # Llamada a la API del backend
-        response = requests.get(backend_url, params=params)
-        response.raise_for_status()
-        backend_data = response.json()
-
-        # Procesamiento
-        df = transform_backend_response(backend_data)
-        df["fecha"] = pd.to_datetime(df["fecha"])
-
-        # Gráfico de área de pesos
-        fig1 = px.area(
-            df,
-            x="fecha",
-            y="peso",
-            color="activo",
-            title="Evolución de pesos w_{i,t}",
-            labels={"peso": "Peso", "activo": "Activo"}
-        )
-        st.plotly_chart(fig1)
-
-        # Gráfico de línea de valor total
-        df_valor = df.drop_duplicates(subset="fecha")
-        fig2 = px.line(
-            df_valor,
-            x="fecha",
-            y="portafolio_total",
-            title="Evolución del valor total Vₜ",
-            markers=True,
-            labels={"portafolio_total": "Vₜ"}
-        )
-        st.plotly_chart(fig2)
-
-    except requests.exceptions.RequestException as e:
-        st.error(f"Error al consultar el backend: {e}")
+    if st.button("Ejecutar operación"):
+        st.success(f"Operación registrada: {activo_vende} → {activo_compra}")
+        # Aquí se llamará al backend para guardar la operación
