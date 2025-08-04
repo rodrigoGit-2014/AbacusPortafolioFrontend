@@ -4,6 +4,9 @@ import plotly.express as px
 import pandas as pd
 from datetime import date
 from services.evolution_service import transform_backend_response
+import os
+
+API_URL = os.getenv("API_URL", "http://localhost:8080")
 
 def render_portfolio_tab():
     st.header("📈 Visualización del Portafolio")
@@ -21,7 +24,7 @@ def render_portfolio_tab():
 
     if st.button("🔍 Buscar evolución del portafolio", key="buscar_evolucion_btn"):
         try:
-            url = f"http://localhost:8080/api/portafolio/{portafolio_id}/evolution"
+            url = f"{API_URL}/api/portafolio/{portafolio_id}/evolution"
             params = {
                 "fechaInicio": fecha_inicio.strftime("%Y-%m-%d"),
                 "fechaFin": fecha_fin.strftime("%Y-%m-%d")

@@ -3,6 +3,9 @@ import streamlit as st
 import requests
 import pandas as pd
 from datetime import date
+import os
+
+API_URL = os.getenv("API_URL", "http://localhost:8080")
 
 def render_operacion_tab():
     st.header("🔄 Operación de Compra/Venta")
@@ -39,7 +42,7 @@ def render_operacion_tab():
         }
 
         try:
-            response = requests.post("http://localhost:8080/api/portfolio/1/operation", json=payload)
+            response = requests.post(f"{API_URL}/api/portfolio/1/operation", json=payload)
             response.raise_for_status()
             result = response.json()
 
