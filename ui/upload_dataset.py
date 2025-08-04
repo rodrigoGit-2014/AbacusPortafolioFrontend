@@ -2,6 +2,9 @@ import streamlit as st
 import requests
 import threading
 import time
+import os
+
+API_URL = os.getenv("API_URL", "http://localhost:8080")
 
 def render_upload_tab():
     st.header("📂 Carga del dataset")
@@ -16,7 +19,7 @@ def render_upload_tab():
                 # 1. Enviar POST en segundo plano
                 def post_request():
                     files = {"file": uploaded_file.getvalue()}
-                    response_container.response = requests.post("http://localhost:8080/etl/import-excel", files=files)
+                    response_container.response = requests.post(f"{API_URL}/etl/import-excel", files=files)
 
                 thread = threading.Thread(target=post_request)
                 thread.start()
